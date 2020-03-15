@@ -1,0 +1,78 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": ["--fast"],
+    "protoc": {
+      "path": "protoc",
+      "options": [
+        "-I=.",
+        "-I=$GOPATH/src/github.com/gogo/protobuf/protobuf",
+        "--proto_path=${workspaceRoot}/api/proto",
+        "--gofast_out=plugins=grpc:."
+      ]
+    },
+    "files.exclude": {
+      "**/.classpath": true,
+      "**/.project": true,
+      "**/.settings": true,
+      "**/.factorypath": true
+    }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch (Badger)",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceRoot}/cmd/server",
+        "env": {},
+        "args": ["--out", "${workspaceRoot}/tmp/badger.su"],
+        "cwd": "${fileDirname}"
+      },
+      {
+        "name": "Launch (Bolt)",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceRoot}/cmd/server",
+        "env": {},
+        "args": ["--out", "${workspaceRoot}/tmp/bolt.su", "--type", "bolt"],
+        "cwd": "${fileDirname}"
+      },
+      {
+        "name": "Launch (Pebble)",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceRoot}/cmd/server",
+        "env": {},
+        "args": ["--out", "${workspaceRoot}/tmp/pebble.aves", "--type", "pebble"],
+        "cwd": "${fileDirname}"
+      },
+      {
+        "name": "Launch (CLI)",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceRoot}/cmd/cli",
+        "env": {},
+        "args": ["range", "01BX5ZZKBKACTAV9WEVGEMMVRY", "2"],
+        "cwd": "${fileDirname}"
+      },
+      {
+        "name": "Launch test package",
+        "type": "go",
+        "request": "launch",
+        "mode": "test",
+        "program": "${workspaceFolder}"
+      }
+    ]
+  }
+}

@@ -1,4 +1,8 @@
 version: 2
+
+orbs:
+  golang: heroku/golang@0.3.0
+
 jobs:
   build_test:
     environment:

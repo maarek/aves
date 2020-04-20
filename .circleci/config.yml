@@ -1,0 +1,34 @@
+version: 2
+jobs:
+  build_test:
+    environment:
+    machine: true
+    steps:
+      - checkout
+      - go:
+          pkg-spec: ""
+          opts: mod verify
+      - go:
+          pkg-spec: ""
+          opts: mod tidy
+      - run:
+          name: Check Modules
+          command: |
+            if [ ! -z "$(git status --porcelain)" ]; then
+                git status
+                echo
+                echo -e '\033[1;93m!!! "go mod verify && go mod tidy" resulted in changes. Please run those commands locally and commit the changes.\e[0m'
+                echo
+                exit 1
+            fi
+      - code-climate-reporter-dl
+      - code-climate-before-build
+      - run: make test
+      - code-climate-after-build
+
+workflows:
+  version: 2
+  build_test:
+    jobs:
+      - build_test
+

@@ -4,6 +4,7 @@ GOBUILD=$(GOCMD) build
 GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
+GOTOOL=$(GOCMD) tool
 BUILD_DIR=generated
 PROTO_DIR=api
 
@@ -20,4 +21,6 @@ build:
 	$(GOBUILD) -o ./bin/avcli ./cmd/cli/main.go
 
 test:
-	echo "Tests Not Implemented"
+	$(GOTEST) -v -timeout 30s -race  -coverprofile coverage.out -covermode atomic ./...
+	$(GOTOOL) cover -func coverage.out
+	

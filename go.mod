@@ -1,6 +1,6 @@
 module github.com/maarek/aves
 
-go 1.12
+go 1.14
 
 require (
 	github.com/alash3al/go-color v1.7.0

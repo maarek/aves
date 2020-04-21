@@ -1,38 +1,17 @@
-version: 2
+version: 2.1
 
 orbs:
   golang: heroku/golang@0.3.0
 
-jobs:
-  build_test:
-    environment:
-    machine: true
-    steps:
-      - checkout
-      - golang/go:
-          pkg-spec: ""
-          opts: mod verify
-      - golang/go:
-          pkg-spec: ""
-          opts: mod tidy
-      - run:
-          name: Check Modules
-          command: |
-            if [ ! -z "$(git status --porcelain)" ]; then
-                git status
-                echo
-                echo -e '\033[1;93m!!! "go mod verify && go mod tidy" resulted in changes. Please run those commands locally and commit the changes.\e[0m'
-                echo
-                exit 1
-            fi
-      - golang/code-climate-reporter-dl
-      - golang/code-climate-before-build
-      - run: make test
-      - golang/code-climate-after-build
+      - golang/test-nodb
+          code-climate: true
 
 workflows:
   version: 2
   build_test:
     jobs:
-      - build_test
+      - golang/golangci-lint
+      - golang/test-nodb
+          code-climate: true
+
 

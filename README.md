@@ -4,7 +4,7 @@
 [![GoDoc](https://godoc.org/github.com/maarek/aves?status.svg)](https://godo.org/github.com/maarek/aves)
 [![CircleCI](https://circleci.com/gh/maarek/aves/tree/master.svg?style=svg)](https://circleci.com/gh/maarek/aves/tree/master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/maarek/aves)](https://goreportcard.com/report/github.com/maarek/aves)
-[![Test Coverage](https://api.codeclimate.com/v1/badges//test_coverage)](https://codeclimate.com/github/maarek/aves/test_coverage)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/7cea74edf35eb31b5427/test_coverage)](https://codeclimate.com/github/maarek/aves/test_coverage)
 [![Maintainability](https://api.codeclimate.com/v1/badges/7cea74edf35eb31b5427/maintainability)](https://codeclimate.com/github/maarek/aves/maintainability)
 
 

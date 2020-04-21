@@ -3,15 +3,10 @@ version: 2.1
 orbs:
   golang: heroku/golang@0.3.0
 
-      - golang/test-nodb
-          code-climate: true
-
 workflows:
-  version: 2
-  build_test:
+  ci:
     jobs:
       - golang/golangci-lint
       - golang/test-nodb:
-          code-climate: true
-
+          code-climate: false
 

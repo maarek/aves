@@ -9,10 +9,10 @@ jobs:
     machine: true
     steps:
       - checkout
-      - go:
+      - golang/go:
           pkg-spec: ""
           opts: mod verify
-      - go:
+      - golang/go:
           pkg-spec: ""
           opts: mod tidy
       - run:
@@ -25,10 +25,10 @@ jobs:
                 echo
                 exit 1
             fi
-      - code-climate-reporter-dl
-      - code-climate-before-build
+      - golang/code-climate-reporter-dl
+      - golang/code-climate-before-build
       - run: make test
-      - code-climate-after-build
+      - golang/code-climate-after-build
 
 workflows:
   version: 2

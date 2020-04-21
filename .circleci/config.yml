@@ -8,5 +8,5 @@ workflows:
     jobs:
       - golang/golangci-lint
       - golang/test-nodb:
-          code-climate: false
+          code-climate: true
 

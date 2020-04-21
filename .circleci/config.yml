@@ -11,7 +11,7 @@ workflows:
   build_test:
     jobs:
       - golang/golangci-lint
-      - golang/test-nodb
+      - golang/test-nodb:
           code-climate: true
 
 

@@ -83,29 +83,29 @@ dockers:
     binaries:
       - aves
     image_templates:
-      - "maarek/aves:latest"
-      - "maarek/aves:{{ .Tag }}"
-      - "maarek/aves:v{{ .Major }}.{{ .Minor }}"
+      - "estools/aves:latest"
+      - "estools/aves:{{ .Tag }}"
+      - "estools/aves:v{{ .Major }}.{{ .Minor }}"
   - dockerfile: build/Dockerfile.aves.alpine
     binaries:
       - aves
     image_templates:
-      - "maarek/aves:latest-alpine"
-      - "maarek/aves:{{ .Tag }}-alpine"
-      - "maarek/aves:v{{ .Major }}.{{ .Minor }}-alpine"
+      - "estools/aves:latest-alpine"
+      - "estools/aves:{{ .Tag }}-alpine"
+      - "estools/aves:v{{ .Major }}.{{ .Minor }}-alpine"
   - dockerfile: build/Dockerfile.avcli
     binaries:
       - avcli
     image_templates:
-      - "maarek/avcli:latest"
-      - "maarek/avcli:{{ .Tag }}"
-      - "maarek/avcli:v{{ .Major }}.{{ .Minor }}"
+      - "estools/avcli:latest"
+      - "estools/avcli:{{ .Tag }}"
+      - "estools/avcli:v{{ .Major }}.{{ .Minor }}"
   - dockerfile: build/Dockerfile.avcli.alpine
     binaries:
       - avcli
     image_templates:
-      - "maarek/avcli:latest-alpine"
-      - "maarek/avcli:{{ .Tag }}-alpine"
-      - "maarek/avcli:v{{ .Major }}.{{ .Minor }}-alpine"
+      - "estools/avcli:latest-alpine"
+      - "estools/avcli:{{ .Tag }}-alpine"
+      - "estools/avcli:v{{ .Major }}.{{ .Minor }}-alpine"
 
 

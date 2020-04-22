@@ -17,14 +17,130 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/maarek/aves"
-	c "github.com/maarek/aves/client"
+	"github.com/maarek/aves/client"
 )
+
+func streamDelete(c *client.Context, args []string) error {
+	var stream string
+	if len(args) > 2 {
+		stream = args[2]
+	}
+	if ok, err := c.Delete(stream); !ok || err != nil {
+		return err
+	}
+	fmt.Println("success")
+	return nil
+}
+
+func streamExists(c *client.Context, args []string) error {
+	var stream string
+	if len(args) > 2 {
+		stream = args[2]
+	}
+	exists, err := c.Exists(stream)
+	if err != nil {
+		return err
+	}
+	if exists {
+		fmt.Println("true")
+	} else {
+		fmt.Println("false")
+	}
+	return nil
+}
+
+func streamList(c *client.Context) error {
+	streams, err := c.SList()
+	if err != nil {
+		return err
+	}
+	for _, stream := range streams {
+		fmt.Printf("%s: %d\n", stream.StreamID, stream.EventCount)
+	}
+	return nil
+}
+
+func eventList(c *client.Context, args []string) error {
+	var offset, limit string
+	if len(args) > 3 {
+		offset = args[3]
+	}
+	if len(args) > 4 {
+		limit = args[4]
+	}
+	events, err := c.EList(args[2], offset, limit)
+	if err != nil {
+		return err
+	}
+	for _, event := range events {
+		fmt.Printf("%d: %s\n", event.Version, event.Data)
+	}
+	return nil
+}
+
+func eventPublish(c *client.Context, args []string) error {
+	var stream, version, data string
+	if len(args) > 2 {
+		stream = args[2]
+	}
+	if len(args) > 3 {
+		version = args[3]
+	}
+	if len(args) > 4 {
+		version = args[4]
+	}
+	if ok, err := c.Publish(stream, version, data); !ok || err != nil {
+		return err
+	}
+	fmt.Println("success")
+	return nil
+}
+
+func streamSubscribe(c *client.Context, args []string) error {
+	var stream, offset string
+	if len(args) > 2 {
+		stream = args[2]
+	}
+	if len(args) > 3 {
+		offset = args[3]
+	}
+	inc := make(chan client.FullEvent, 10)
+	errc := make(chan error)
+	go c.Subscribe(inc, errc, stream, offset)
+	for {
+		select {
+		case err := <-errc:
+			return err
+		case event := <-inc:
+			fmt.Printf("%s:%s:%d: %s\n", event.StreamID, event.EventID, event.Version, event.Data)
+		}
+	}
+}
+
+func subscribeAll(c *client.Context, args []string) error {
+	var offset string
+	if len(args) > 2 {
+		offset = args[2]
+	}
+	inc := make(chan client.FullEvent, 10)
+	errc := make(chan error)
+	go c.SubscribeAll(inc, errc, offset)
+	for {
+		select {
+		case err := <-errc:
+			return err
+		case event := <-inc:
+			fmt.Printf("%s:%s:%d: %s\n", event.StreamID, event.EventID, event.Version, event.Data)
+		}
+	}
+}
 
 func main() {
 	addr := flag.String("addr", ":6379", "host:port for resp api server")
@@ -37,7 +153,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := c.NewClient(*addr)
+	c, err := client.NewClient(*addr)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
@@ -47,112 +163,27 @@ func main() {
 	switch aves.Command(strings.ToLower(os.Args[1])) {
 	// stream
 	case aves.StreamDelete:
-		var stream string
-		if len(os.Args) > 2 {
-			stream = os.Args[2]
-		}
-		if ok, err := client.Delete(stream); !ok || err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		fmt.Println("success")
+		err = streamDelete(c, os.Args)
 	case aves.StreamExists:
-		var stream string
-		if len(os.Args) > 2 {
-			stream = os.Args[2]
-		}
-		exists, err := client.Exists(stream)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		if exists {
-			fmt.Println("true")
-		} else {
-			fmt.Println("false")
-		}
+		err = streamExists(c, os.Args)
 	case aves.StreamList:
-		streams, err := client.SList()
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		for _, stream := range streams {
-			fmt.Printf("%s: %d\n", stream.StreamID, stream.EventCount)
-		}
-		// events
+		err = streamList(c)
+	// events
 	case aves.EventList:
-		var offset, limit string
-		if len(os.Args) > 3 {
-			offset = os.Args[3]
-		}
-		if len(os.Args) > 4 {
-			limit = os.Args[4]
-		}
-		events, err := client.EList(os.Args[2], offset, limit)
-		if err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		for _, event := range events {
-			fmt.Printf("%d: %s\n", event.Version, event.Data)
-		}
+		err = eventList(c, os.Args)
 	// pubsub
 	case aves.EventPublish:
-		var stream, version, data string
-		if len(os.Args) > 2 {
-			stream = os.Args[2]
-		}
-		if len(os.Args) > 3 {
-			version = os.Args[3]
-		}
-		if len(os.Args) > 4 {
-			version = os.Args[4]
-		}
-		if ok, err := client.Publish(stream, version, data); !ok || err != nil {
-			fmt.Println(err.Error())
-			os.Exit(1)
-		}
-		fmt.Println("success")
+		err = eventPublish(c, os.Args)
 	case aves.StreamSubscribe:
-		var stream, offset string
-		if len(os.Args) > 2 {
-			stream = os.Args[2]
-		}
-		if len(os.Args) > 3 {
-			offset = os.Args[3]
-		}
-		inc := make(chan c.FullEvent, 10)
-		errc := make(chan error)
-		go client.Subscribe(inc, errc, stream, offset)
-		for {
-			select {
-			case err := <-errc:
-				fmt.Println(err.Error())
-				os.Exit(1)
-			case event := <-inc:
-				fmt.Printf("%s:%s:%d: %s\n", event.StreamID, event.EventID, event.Version, event.Data)
-			}
-		}
+		err = streamSubscribe(c, os.Args)
 	case aves.SubscribeAll:
-		var offset string
-		if len(os.Args) > 2 {
-			offset = os.Args[2]
-		}
-		inc := make(chan c.FullEvent, 10)
-		errc := make(chan error)
-		go client.SubscribeAll(inc, errc, offset)
-		for {
-			select {
-			case err := <-errc:
-				fmt.Println(err.Error())
-				os.Exit(1)
-			case event := <-inc:
-				fmt.Printf("%s:%s:%d: %s\n", event.StreamID, event.EventID, event.Version, event.Data)
-			}
-		}
+		err = subscribeAll(c, os.Args)
 	default:
-		fmt.Println("unknown command")
+		err = errors.New("unknown command")
+	}
+
+	if err != nil {
+		fmt.Print(err.Error())
 		os.Exit(1)
 	}
 

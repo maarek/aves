@@ -28,7 +28,6 @@ import (
 	"github.com/maarek/aves/oplog"
 	"github.com/maarek/aves/store"
 	"github.com/maarek/aves/store/badger"
-	"github.com/maarek/aves/store/bolt"
 	"github.com/maarek/aves/store/pebble"
 	"github.com/tidwall/redcon"
 )
@@ -45,8 +44,6 @@ type Server struct {
 func NewRespServer(addr, dbt, out string, verbose bool) *Server {
 	var dbType store.DBType
 	switch dbt {
-	case "bolt":
-		dbType = store.BOLT
 	case "pebble":
 		dbType = store.PEBBLE
 	default:
@@ -137,8 +134,6 @@ func loadDB(dbType store.DBType, out string) (db store.DB, err error) {
 	switch dbType {
 	case store.BADGER:
 		db, err = badger.OpenDB(out)
-	case store.BOLT:
-		db, err = bolt.OpenDB(out)
 	case store.PEBBLE:
 		db, err = pebble.OpenDB(out)
 	}

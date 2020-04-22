@@ -16,7 +16,6 @@
 package store
 
 import (
-	"fmt"
 	"io/ioutil"
 	"sync"
 	"testing"
@@ -43,7 +42,7 @@ func testGen(b *testing.B, f func() string) {
 		go func() {
 			defer wg.Done()
 			for j := 0; j < count; j++ {
-				fmt.Fprintf(ioutil.Discard, f())
+				b.Log(ioutil.Discard, f())
 			}
 		}()
 	}

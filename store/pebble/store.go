@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package pebble
 
 import (
@@ -25,14 +26,14 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-// PebbleDB - represents a pebble db implementation
-type PebbleDB struct {
+// DB - represents a pebble db implementation
+type DB struct {
 	pebble *pebble.DB
 	wo     *pebble.WriteOptions
 }
 
 // OpenDB - Opens the specified path
-func OpenDB(path string) (*PebbleDB, error) {
+func OpenDB(path string) (*DB, error) {
 	c := *pebble.DefaultComparer
 	// NB: this is named as such only to match the built-in RocksDB comparer.
 	c.Name = "leveldb.BytewiseComparator"
@@ -50,30 +51,30 @@ func OpenDB(path string) (*PebbleDB, error) {
 		return nil, err
 	}
 
-	db := new(PebbleDB)
+	db := new(DB)
 	db.pebble = pdb
 	db.wo = wo
 
 	return db, nil
 }
 
-// Close
-func (db *PebbleDB) Close() {
+// Close - closes the database
+func (db *DB) Close() {
 	db.pebble.Close()
 }
 
 // Size - returns the size of the database in bytes
-func (db *PebbleDB) Size() int64 {
+func (db *DB) Size() int64 {
 	return -1
 }
 
 // GC - runs the garbage collector
-func (db *PebbleDB) GC() error {
+func (db *DB) GC() error {
 	return fmt.Errorf("unimplemented")
 }
 
 // Set - sets a key with the specified value if the version doesn't exist
-func (db *PebbleDB) Set(k store.Key, v string) error {
+func (db *DB) Set(k store.Key, v string) error {
 	key, err := packStream(k)
 	if err != nil {
 		return err
@@ -83,7 +84,7 @@ func (db *PebbleDB) Set(k store.Key, v string) error {
 	if err != nil && err.Error() != "pebble: not found" {
 		return err
 	}
-	if item != nil && len(item) > 0 {
+	if len(item) > 0 {
 		closer.Close()
 		return fmt.Errorf("event for key exists %v", k)
 	}
@@ -108,12 +109,12 @@ func (db *PebbleDB) Set(k store.Key, v string) error {
 }
 
 // Get - fetches the value of the specified key
-func (db *PebbleDB) Get(k store.Key) (string, error) {
+func (db *DB) Get(k store.Key) (string, error) {
 	key, err := packStream(k)
 	if err != nil {
 		return "", err
 	}
-	item, closer, err := db.pebble.Get([]byte(key))
+	item, closer, err := db.pebble.Get(key)
 	if err != nil {
 		return "", err
 	}
@@ -128,7 +129,7 @@ func (db *PebbleDB) Get(k store.Key) (string, error) {
 }
 
 // Del - removes key(s) from the store
-func (db *PebbleDB) Del(keys []string) error {
+func (db *DB) Del(keys []string) error {
 	wb := db.pebble.NewBatch()
 
 	for _, key := range keys {
@@ -166,7 +167,7 @@ func (db *PebbleDB) Del(keys []string) error {
 }
 
 // Scan - iterate over the whole store using the handler function
-func (db *PebbleDB) Scan(scannerOpt store.ScannerOptions) error {
+func (db *DB) Scan(scannerOpt store.ScannerOptions) error {
 	var prefix []byte
 	// Index scan for time
 	if scannerOpt.Index {
@@ -179,7 +180,7 @@ func (db *PebbleDB) Scan(scannerOpt store.ScannerOptions) error {
 	prefixLen := len(prefix)
 	upperBound := make([]byte, prefixLen)
 	copy(upperBound, prefix)
-	upperBound[prefixLen-1] = upperBound[prefixLen-1] + 1
+	upperBound[prefixLen-1]++
 
 	io := &pebble.IterOptions{
 		UpperBound: upperBound,
@@ -261,10 +262,10 @@ func streamScanPrefix(prefix []byte) []byte {
 	}
 
 	buf := make([]byte, len(prefix)+2)
-	copy(buf, streamScanIdentifier()[:])
+	copy(buf, streamScanIdentifier())
 	copy(buf[2:], prefix)
 
-	return buf[:]
+	return buf
 }
 
 func indexScanPrefix(ts []byte) []byte {
@@ -326,10 +327,10 @@ func unpackIndex(key []byte) (store.Key, error) {
 		return k, fmt.Errorf("unable to unpack key %v", key)
 	}
 
-	var ulid ulid.ULID
-	copy(ulid[:], v[1][:])
+	var id ulid.ULID
+	copy(id[:], v[1])
 
-	k.ID = ulid
+	k.ID = id
 	k.Stream = store.StreamID(v[2])
 	k.Version = v[3]
 

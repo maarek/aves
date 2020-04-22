@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package main
 
 import (
@@ -45,7 +46,7 @@ func main() {
 	// match commands
 	switch aves.Command(strings.ToLower(os.Args[1])) {
 	// stream
-	case aves.STREAM_DELETE:
+	case aves.StreamDelete:
 		var stream string
 		if len(os.Args) > 2 {
 			stream = os.Args[2]
@@ -55,7 +56,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("success")
-	case aves.STREAM_EXISTS:
+	case aves.StreamExists:
 		var stream string
 		if len(os.Args) > 2 {
 			stream = os.Args[2]
@@ -70,7 +71,7 @@ func main() {
 		} else {
 			fmt.Println("false")
 		}
-	case aves.STREAM_LIST:
+	case aves.StreamList:
 		streams, err := client.SList()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -79,8 +80,8 @@ func main() {
 		for _, stream := range streams {
 			fmt.Printf("%s: %d\n", stream.StreamID, stream.EventCount)
 		}
-	// events
-	case aves.EVENT_LIST:
+		// events
+	case aves.EventList:
 		var offset, limit string
 		if len(os.Args) > 3 {
 			offset = os.Args[3]
@@ -97,7 +98,7 @@ func main() {
 			fmt.Printf("%d: %s\n", event.Version, event.Data)
 		}
 	// pubsub
-	case aves.EVENT_PUBLISH:
+	case aves.EventPublish:
 		var stream, version, data string
 		if len(os.Args) > 2 {
 			stream = os.Args[2]
@@ -113,7 +114,7 @@ func main() {
 			os.Exit(1)
 		}
 		fmt.Println("success")
-	case aves.STREAM_SUBSCRIBE:
+	case aves.StreamSubscribe:
 		var stream, offset string
 		if len(os.Args) > 2 {
 			stream = os.Args[2]
@@ -133,7 +134,7 @@ func main() {
 				fmt.Printf("%s:%s:%d: %s\n", event.StreamID, event.EventID, event.Version, event.Data)
 			}
 		}
-	case aves.SUBSCRIBE_ALL:
+	case aves.SubscribeAll:
 		var offset string
 		if len(os.Args) > 2 {
 			offset = os.Args[2]

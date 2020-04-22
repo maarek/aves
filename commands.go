@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package aves
 
 import (
@@ -22,34 +23,42 @@ import (
 	"github.com/maarek/aves/commands/stream"
 )
 
+// Command - a server command
 type Command string
 
 const (
-	STREAM_DELETE Command = "delete"
-	STREAM_EXISTS Command = "exists"
-	STREAM_LIST   Command = "slist"
+	// StreamDelete - redis delete command
+	StreamDelete Command = "delete"
+	// StreamExists - redis exists command
+	StreamExists Command = "exists"
+	// StreamList - redis list command
+	StreamList Command = "slist"
 
-	EVENT_LIST Command = "elist"
+	// EventList - redis event list command
+	EventList Command = "elist"
 
-	EVENT_PUBLISH    Command = "publish"
-	STREAM_SUBSCRIBE Command = "subscribe"
-	SUBSCRIBE_ALL    Command = "subscribeall"
+	// EventPublish - redis event publish command
+	EventPublish Command = "publish"
+	// StreamSubscribe - redis stream subscription command
+	StreamSubscribe Command = "subscribe"
+	// SubscribeAll - redis all event subscription command
+	SubscribeAll Command = "subscribeall"
 )
 
 var (
-	// server receive handlers
+	// Commands - server receive handlers
 	Commands = map[Command]cmds.ReceiveHandler{
 		// stream
-		STREAM_DELETE: stream.DeleteCommand,
-		STREAM_EXISTS: stream.ExistsCommand,
-		STREAM_LIST:   stream.ListCommand,
+		StreamDelete: stream.DeleteCommand,
+		StreamExists: stream.ExistsCommand,
+		StreamList:   stream.ListCommand,
 
 		// events
-		EVENT_LIST: events.RangeCommand,
+		EventList: events.RangeCommand,
 
 		// pubsub
-		EVENT_PUBLISH:    pubsub.PublishCommand,
-		STREAM_SUBSCRIBE: pubsub.SubscribeCommand,
-		SUBSCRIBE_ALL:    pubsub.SubscribeAllCommand,
+		EventPublish:    pubsub.PublishCommand,
+		StreamSubscribe: pubsub.SubscribeCommand,
+		SubscribeAll:    pubsub.SubscribeAllCommand,
 	}
 )

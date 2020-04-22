@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package events
 
 import (
@@ -23,7 +24,7 @@ import (
 )
 
 // RangeCommand - ELIST <stream> [<offset> <size>]
-func RangeCommand(c cmds.Context) {
+func RangeCommand(c *cmds.Context) {
 	var offset []byte
 	var limit int
 

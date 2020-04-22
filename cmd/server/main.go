@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package main
 
 import (
@@ -25,12 +26,7 @@ import (
 	"github.com/alash3al/go-color"
 	su "github.com/maarek/aves/server"
 	_ "go.uber.org/automaxprocs/maxprocs"
-	_ "net/http/pprof"
 )
-
-// Provided by govvv at compile time
-var GitCommit, GitBranch, GitState, GitSummary string
-var BuildNumber, BuildDate, Version string
 
 func Ballast(size int) func() {
 	ballast := make([]byte, size)
@@ -38,27 +34,14 @@ func Ballast(size int) func() {
 }
 
 func main() {
-	// master := flag.Bool("master", false, "master node election")
-	// shard := flag.Bool("shard", false, "shard node election")
-
-	// For Both Node Types
 	port := flag.Int("port", 6379, "port for resp api server")
-	// peers := flag.String("peers", "", "peer servers as a comma seperated list (slave1:6379,slave2:6379)")
 
-	// For Master Nodes
-
-	// For Shard Nodes
 	dbType := flag.String("type", "badger", "type of datastore (badger,bolt,pebble)")
 	out := flag.String("out", "", "location of the database files")
 
 	verbose := flag.Bool("verbose", false, "log level verbose")
 
 	ballast := flag.Int("ballast", 2560, "ballast in MBs")
-
-	// if !*master && !*shard {
-	// 	flag.PrintDefaults()
-	// 	os.Exit(1)
-	// }
 
 	flag.Parse()
 

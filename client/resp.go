@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package client
 
 import (
@@ -21,6 +22,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+// Stream - defines the aggregate stream response
 type Stream struct {
 	StreamID   string
 	EventCount int
@@ -35,6 +37,7 @@ func parseSListResp(resp []interface{}) ([]Stream, error) {
 	return streams, nil
 }
 
+// SimpleEvent - defines an event on a stream without metadata
 type SimpleEvent struct {
 	Version int
 	Data    string
@@ -49,6 +52,7 @@ func parseSimpleEventListResp(resp []interface{}) ([]SimpleEvent, error) {
 	return events, nil
 }
 
+// FullEvent - defines an event on a stream with metadata
 type FullEvent struct {
 	StreamID string
 	EventID  string

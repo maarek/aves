@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package aves
 
 import (
@@ -32,15 +33,16 @@ import (
 	"github.com/tidwall/redcon"
 )
 
-type seiServer struct {
+// Server - metadata to load a server from
+type Server struct {
 	addr    string
 	dbType  store.DBType
 	path    string
 	verbose bool
 }
 
-// Create a server for running the data store
-func NewRespServer(addr string, dbt string, out string, verbose bool) *seiServer {
+// NewRespServer - creates a server for running the data store
+func NewRespServer(addr, dbt, out string, verbose bool) *Server {
 	var dbType store.DBType
 	switch dbt {
 	case "bolt":
@@ -51,7 +53,7 @@ func NewRespServer(addr string, dbt string, out string, verbose bool) *seiServer
 		dbType = store.BADGER
 	}
 
-	return &seiServer{
+	return &Server{
 		addr:    addr,
 		dbType:  dbType,
 		path:    out,
@@ -60,14 +62,14 @@ func NewRespServer(addr string, dbt string, out string, verbose bool) *seiServer
 }
 
 // Start the RESP Server
-func (s *seiServer) Start() error {
+func (s *Server) Start() error {
 	// initialize the data store
 	db, err := loadDB(s.dbType, s.path)
 	if err != nil {
 		return fmt.Errorf("db error: %s", err.Error())
 	}
 
-	oplog := oplog.NewBroadcaster()
+	opl := oplog.NewBroadcaster()
 
 	return redcon.ListenAndServe(
 		s.addr,
@@ -114,12 +116,12 @@ func (s *seiServer) Start() error {
 			}
 
 			// dispatch the command and catch its errors
-			fn(cmds.Context{
+			fn(&cmds.Context{
 				Conn:   conn,
 				Action: action,
 				Args:   args,
 				DB:     db,
-				OpLog:  oplog,
+				OpLog:  opl,
 			})
 		},
 		func(conn redcon.Conn) bool {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package oplog
 
 type broadcast struct {
@@ -20,18 +21,18 @@ type broadcast struct {
 	v interface{}
 }
 
+// Broadcaster - defines a pubsub mechanism for distributing events to listeners
 type Broadcaster struct {
-	// private fields:
-	Listenc chan chan (chan broadcast)
-	Sendc   chan<- interface{}
+	listenc chan chan (chan broadcast)
+	sendc   chan<- interface{}
 }
 
+// Receiver - a listener for events
 type Receiver struct {
-	// private fields:
-	C chan broadcast
+	c chan broadcast
 }
 
-// create a new broadcaster object.
+// NewBroadcaster - create a new broadcaster object.
 func NewBroadcaster() Broadcaster {
 	listenc := make(chan (chan (chan broadcast)))
 	sendc := make(chan interface{})
@@ -54,27 +55,27 @@ func NewBroadcaster() Broadcaster {
 		}
 	}()
 	return Broadcaster{
-		Listenc: listenc,
-		Sendc:   sendc,
+		listenc: listenc,
+		sendc:   sendc,
 	}
 }
 
-// start listening to the broadcasts.
+// Listen - start listening to the broadcasts.
 func (b Broadcaster) Listen() Receiver {
-	c := make(chan chan broadcast, 0)
-	b.Listenc <- c
+	c := make(chan chan broadcast)
+	b.listenc <- c
 	return Receiver{<-c}
 }
 
-// broadcast a value to all listeners.
-func (b Broadcaster) Write(v interface{}) { b.Sendc <- v }
+// Write - broadcast a value to all listeners.
+func (b Broadcaster) Write(v interface{}) { b.sendc <- v }
 
-// read a value that has been broadcast,
+// Read - read a value that has been broadcast,
 // waiting until one is available if necessary.
 func (r *Receiver) Read() interface{} {
-	b := <-r.C
+	b := <-r.c
 	v := b.v
-	r.C <- b
-	r.C = b.c
+	r.c <- b
+	r.c = b.c
 	return v
 }

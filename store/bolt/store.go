@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package bolt
 
 import (
@@ -26,59 +27,63 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-var DEFAULT = []byte("default")
+var defaultConst = []byte("default")
 
-// BoltDB - represents a badger db implementation
-type BoltDB struct {
+// DB - represents a badger db implementation
+type DB struct {
 	bolt *bolt.DB
 }
 
 // OpenDB - Opens the specified path
-func OpenDB(path string) (*BoltDB, error) {
+func OpenDB(path string) (*DB, error) {
 	bdb, err := bolt.Open(path, 0600, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	if err := bdb.Update(func(txn *bolt.Tx) error {
-		_, err := txn.CreateBucketIfNotExists(DEFAULT)
+		_, err := txn.CreateBucketIfNotExists(defaultConst)
 		return err
 	}); err != nil {
 		return nil, err
 	}
 
-	db := new(BoltDB)
+	db := new(DB)
 	db.bolt = bdb
 
 	return db, nil
 }
 
-// Close
-func (db *BoltDB) Close() {
+// Close - closes the database
+func (db *DB) Close() {
 	db.bolt.Close()
 }
 
 // Size - returns the size of the database in bytes
-func (db *BoltDB) Size() int64 {
+// returns -1 on error
+func (db *DB) Size() int64 {
 	var size int64
 
-	db.bolt.View(func(txn *bolt.Tx) error {
+	err := db.bolt.View(func(txn *bolt.Tx) error {
 		size = txn.Size()
 		return nil
 	})
+	if err != nil {
+		return -1
+	}
 
 	return size
 }
 
 // GC - runs the garbage collector
-func (db *BoltDB) GC() error {
+func (db *DB) GC() error {
 	return nil
 }
 
 // Set - sets a key with the specified value if the version doesn't exist
-func (db *BoltDB) Set(k store.Key, v string) error {
+func (db *DB) Set(k store.Key, v string) error {
 	return db.bolt.Update(func(txn *bolt.Tx) (err error) {
-		d := txn.Bucket(DEFAULT)
+		d := txn.Bucket(defaultConst)
 
 		b, err := d.CreateBucketIfNotExists(k.Stream[:])
 		if err != nil {
@@ -97,11 +102,11 @@ func (db *BoltDB) Set(k store.Key, v string) error {
 }
 
 // Get - fetches the value of the specified key
-func (db *BoltDB) Get(k store.Key) (string, error) {
+func (db *DB) Get(k store.Key) (string, error) {
 	var data string
 
 	err := db.bolt.View(func(txn *bolt.Tx) error {
-		d := txn.Bucket(DEFAULT)
+		d := txn.Bucket(defaultConst)
 
 		b := d.Bucket(k.Stream[:])
 
@@ -119,10 +124,10 @@ func (db *BoltDB) Get(k store.Key) (string, error) {
 }
 
 // Del - removes key(s) from the store
-func (db *BoltDB) Del(keys []string) error {
+func (db *DB) Del(keys []string) error {
 	return db.bolt.Update(func(txn *bolt.Tx) error {
 		for _, key := range keys {
-			d := txn.Bucket(DEFAULT)
+			d := txn.Bucket(defaultConst)
 			err := d.DeleteBucket([]byte(key))
 			if err != nil {
 				return err
@@ -133,7 +138,7 @@ func (db *BoltDB) Del(keys []string) error {
 }
 
 // Scan - iterate over the whole store using the handler function
-func (db *BoltDB) Scan(scannerOpt store.ScannerOptions) error {
+func (db *DB) Scan(scannerOpt store.ScannerOptions) error {
 	return db.bolt.View(func(txn *bolt.Tx) error {
 		var k, v []byte
 		var it *bolt.Cursor
@@ -147,10 +152,10 @@ func (db *BoltDB) Scan(scannerOpt store.ScannerOptions) error {
 			}
 		}
 
-		d := txn.Bucket(DEFAULT)
+		d := txn.Bucket(defaultConst)
 
 		if len(scannerOpt.Prefix) != 0 {
-			bucket := d.Bucket([]byte(scannerOpt.Prefix))
+			bucket := d.Bucket(scannerOpt.Prefix)
 			if bucket == nil {
 				return nil
 			}
@@ -172,7 +177,7 @@ func (db *BoltDB) Scan(scannerOpt store.ScannerOptions) error {
 			}
 		}
 
-		valid := func(it *bolt.Cursor) bool {
+		valid := func(_ *bolt.Cursor) bool {
 			return k != nil
 		}
 
@@ -184,10 +189,10 @@ func (db *BoltDB) Scan(scannerOpt store.ScannerOptions) error {
 			copy(kCopy, k)
 
 			if v != nil {
-				copy(streamID[:], scannerOpt.Prefix[:])
+				copy(streamID[:], scannerOpt.Prefix)
 				ver = kCopy
 			} else {
-				copy(streamID[:], kCopy[:])
+				copy(streamID[:], kCopy)
 				ver = []byte{}
 			}
 

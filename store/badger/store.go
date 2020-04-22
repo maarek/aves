@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package badger
 
 import (
@@ -26,13 +27,13 @@ import (
 	"github.com/oklog/ulid/v2"
 )
 
-// BadgerDB - represents a badger db implementation
-type BadgerDB struct {
+// DB - represents a badger db implementation
+type DB struct {
 	badger *badger.DB
 }
 
 // OpenDB - Opens the specified path
-func OpenDB(path string) (*BadgerDB, error) {
+func OpenDB(path string) (*DB, error) {
 	opts := badger.DefaultOptions(path)
 
 	opts.Truncate = true
@@ -49,7 +50,7 @@ func OpenDB(path string) (*BadgerDB, error) {
 		return nil, err
 	}
 
-	db := new(BadgerDB)
+	db := new(DB)
 	db.badger = bdb
 
 	go (func() {
@@ -62,18 +63,18 @@ func OpenDB(path string) (*BadgerDB, error) {
 }
 
 // Close
-func (db *BadgerDB) Close() {
+func (db *DB) Close() {
 	db.badger.Close()
 }
 
 // Size - returns the size of the database (LSM + ValueLog) in bytes
-func (db *BadgerDB) Size() int64 {
+func (db *DB) Size() int64 {
 	lsm, vlog := db.badger.Size()
 	return lsm + vlog
 }
 
 // GC - runs the garbage collector
-func (db *BadgerDB) GC() error {
+func (db *DB) GC() error {
 	var err error
 	for {
 		err = db.badger.RunValueLogGC(0.5)
@@ -85,7 +86,7 @@ func (db *BadgerDB) GC() error {
 }
 
 // Set - sets a key with the specified value if the version doesn't exist
-func (db *BadgerDB) Set(k store.Key, v string) error {
+func (db *DB) Set(k store.Key, v string) error {
 	return db.badger.Update(func(txn *badger.Txn) (err error) {
 		key, err := packStream(k)
 		if err != nil {
@@ -114,7 +115,7 @@ func (db *BadgerDB) Set(k store.Key, v string) error {
 }
 
 // Get - fetches the value of the specified key
-func (db *BadgerDB) Get(k store.Key) (string, error) {
+func (db *DB) Get(k store.Key) (string, error) {
 	var data string
 
 	err := db.badger.View(func(txn *badger.Txn) error {
@@ -122,7 +123,7 @@ func (db *BadgerDB) Get(k store.Key) (string, error) {
 		if err != nil {
 			return err
 		}
-		item, err := txn.Get([]byte(key))
+		item, err := txn.Get(key)
 		if err != nil {
 			return err
 		}
@@ -141,9 +142,12 @@ func (db *BadgerDB) Get(k store.Key) (string, error) {
 }
 
 // Del - removes key(s) from the store
-func (db *BadgerDB) Del(keys []string) error {
+func (db *DB) Del(keys []string) error {
 	return db.badger.Update(func(txn1 *badger.Txn) error {
 		for _, key := range keys {
+			keyLen := len(key)
+			keyCopy := key
+
 			// scan for keys with prefix
 			err := db.badger.View(func(txn2 *badger.Txn) error {
 				it := txn2.NewIterator(badger.DefaultIteratorOptions)
@@ -151,9 +155,9 @@ func (db *BadgerDB) Del(keys []string) error {
 
 				// TODO: Move to Pack
 				var sb strings.Builder
-				sb.Grow(2 + len(key))
+				sb.Grow(2 + keyLen)
 				sb.WriteString("s:")
-				sb.WriteString(key)
+				sb.WriteString(keyCopy)
 				prefix := []byte(sb.String())
 
 				for it.Seek(prefix); it.ValidForPrefix(prefix); it.Next() {
@@ -177,7 +181,7 @@ func (db *BadgerDB) Del(keys []string) error {
 }
 
 // Scan - iterate over the whole store using the handler function
-func (db *BadgerDB) Scan(scannerOpt store.ScannerOptions) error {
+func (db *DB) Scan(scannerOpt store.ScannerOptions) error {
 	var prefix []byte
 	// Index scan for time
 	if scannerOpt.Index {
@@ -270,10 +274,10 @@ func streamScanPrefix(prefix []byte) []byte {
 	}
 
 	buf := make([]byte, len(prefix)+2)
-	copy(buf, streamScanIdentifier()[:])
+	copy(buf, streamScanIdentifier())
 	copy(buf[2:], prefix)
 
-	return buf[:]
+	return buf
 }
 
 func indexScanPrefix(ts []byte) []byte {
@@ -335,10 +339,10 @@ func unpackIndex(key []byte) (store.Key, error) {
 		return k, fmt.Errorf("unable to unpack key %v", key)
 	}
 
-	var ulid ulid.ULID
-	copy(ulid[:], v[1][:])
+	var id ulid.ULID
+	copy(id[:], v[1])
 
-	k.ID = ulid
+	k.ID = id
 	k.Stream = store.StreamID(v[2])
 	k.Version = v[3]
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package store
 
 import (
@@ -27,10 +28,10 @@ const (
 	PEBBLE
 )
 
-// Stream ID
+// Stream ID - id type
 type StreamID []byte
 
-// Key structure to hold both stream and version
+// Key - structure to hold both stream and version
 type Key struct {
 	// TimeSeries Identifier
 	ID ulid.ULID // 16 byte array
@@ -42,8 +43,8 @@ type Key struct {
 	Version []byte
 }
 
-// Create a new Event with defined Ulid
-func NewEventKey(stream []byte, version []byte) Key {
+// NewEventKey - create a new Event with defined Ulid
+func NewEventKey(stream, version []byte) Key {
 	return Key{
 		ID:      GenUlid(),
 		Stream:  StreamID(stream),
@@ -51,7 +52,7 @@ func NewEventKey(stream []byte, version []byte) Key {
 	}
 }
 
-// DB Interface
+// DB - database interface
 type DB interface {
 	Set(k Key, v string) error
 	Get(k Key) (string, error)
@@ -62,6 +63,7 @@ type DB interface {
 	Close()
 }
 
+// Handler - handler used for the scanner options
 type Handler func(k Key, v string) bool
 
 // ScannerOptions - represents the options for a scanner

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package commands
 
 import (
@@ -22,7 +23,7 @@ import (
 )
 
 // ReceiveHandler - represents a handler for a command
-type ReceiveHandler func(c Context)
+type ReceiveHandler func(c *Context)
 
 // Context - represents a handler context
 type Context struct {

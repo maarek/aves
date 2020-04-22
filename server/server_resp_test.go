@@ -24,16 +24,14 @@ import (
 	"github.com/maarek/aves/store"
 )
 
-const MULTIPLIER = 5
-const FILL = 1000000
+const fill = 1000000
 
 func BenchmarkBadger(b *testing.B) {
 	b.ReportAllocs()
 	// Setup
 	go func() {
-		// defer cleanupDir("tmp/badger.aves")
 		if err := NewRespServer(":6379", "badger", "../tmp/badger.aves", false).Start(); err != nil {
-			b.Fatalf("server should start up without error %v", err.Error())
+			b.Errorf("server should start up without error %v", err.Error())
 		}
 	}()
 
@@ -44,7 +42,7 @@ func BenchmarkBadger(b *testing.B) {
 		b.Fatalf("%v", err.Error())
 	}
 
-	for i := 0; i < FILL; i++ {
+	for i := 0; i < fill; i++ {
 		stream := store.GenUlid().String()
 		if _, err := conn.Do("PUBLISH", stream, i, "somepayload"); err != nil {
 			b.Fatalf("%v", err.Error())
@@ -78,64 +76,12 @@ func BenchmarkBadger(b *testing.B) {
 	conn.Close()
 }
 
-// func BenchmarkBolt(b *testing.B) {
-// 	b.ReportAllocs()
-// 	// Setup
-// 	go func() {
-// 		// defer cleanupDir("tmp/badger.aves")
-// 		if err := NewRespServer(":6380", "bolt", "tmp/bolt.aves", false).Start(); err != nil {
-// 			b.Fatalf("server should start up without error %v", err.Error())
-// 		}
-// 	}()
-
-// 	time.Sleep(time.Second / 4)
-
-// 	conn, err := redis.Dial("tcp", ":6380", redis.DialConnectTimeout(time.Minute))
-// 	if err != nil {
-// 		b.Fatalf("%v", err.Error())
-// 	}
-
-// 	for i := 0; i < FILL; i++ {
-// 		stream := store.GenUlid().String()
-// 		if _, err := conn.Do("PUBLISH", stream, i, "somepayload"); err != nil {
-// 			b.Fatalf("%v", err.Error())
-// 		}
-// 	}
-
-// 	// Benchmarks
-// 	b.Run("BenchmarkBoltSet", func(b *testing.B) {
-// 		stream := store.GenUlid().String()
-// 		for n := 0; n < b.N; n++ {
-// 			if _, err := conn.Do("PUBLISH", stream, n, "somepayload"); err != nil {
-// 				b.Fatalf("%v", err.Error())
-// 			}
-// 		}
-// 	})
-// 	b.Run("BenchmarkBoltGet", func(b *testing.B) {
-// 		stream := store.GenUlid().String()
-// 		for n := 0; n < b.N; n++ {
-// 			if _, err := conn.Do("ELIST", stream); err != nil {
-// 				b.Fatalf("%v", err.Error())
-// 			}
-// 		}
-// 	})
-
-// 	// Cleanup
-// 	if _, err := conn.Do("QUIT"); err != nil {
-// 		b.Fatalf("%v", err.Error())
-// 	}
-
-// 	cleanupDir("tmp/bolt.aves")
-// 	conn.Close()
-// }
-
 func BenchmarkPebble(b *testing.B) {
 	b.ReportAllocs()
 	// Setup
 	go func() {
-		// defer cleanupDir("tmp/pebble.aves")
 		if err := NewRespServer(":6379", "pebble", "../tmp/pebble.aves", false).Start(); err != nil {
-			b.Fatalf("server should start up without error %v", err.Error())
+			b.Errorf("server should start up without error %v", err.Error())
 		}
 	}()
 
@@ -146,7 +92,7 @@ func BenchmarkPebble(b *testing.B) {
 		b.Fatalf("%v", err.Error())
 	}
 
-	for i := 0; i < FILL; i++ {
+	for i := 0; i < fill; i++ {
 		stream := store.GenUlid().String()
 		if _, err := conn.Do("PUBLISH", stream, i, "somepayload"); err != nil {
 			b.Fatalf("%v", err.Error())
@@ -158,7 +104,7 @@ func BenchmarkPebble(b *testing.B) {
 		stream := store.GenUlid().String()
 		for n := 0; n < b.N; n++ {
 			if _, err := conn.Do("PUBLISH", stream, n, "somepayload"); err != nil {
-				b.Fatalf("%v", err.Error())
+				b.Errorf("%v", err.Error())
 			}
 		}
 	})
@@ -166,7 +112,7 @@ func BenchmarkPebble(b *testing.B) {
 		stream := store.GenUlid().String()
 		for n := 0; n < b.N; n++ {
 			if _, err := conn.Do("ELIST", stream); err != nil {
-				b.Fatalf("%v", err.Error())
+				b.Errorf("%v", err.Error())
 			}
 		}
 	})
@@ -176,7 +122,6 @@ func BenchmarkPebble(b *testing.B) {
 		b.Fatalf("%v", err.Error())
 	}
 
-	// cleanupDir("tmp/pebble.aves")
 	conn.Close()
 }
 

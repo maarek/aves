@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package stream
 
 import (
@@ -22,7 +23,7 @@ import (
 )
 
 // DeleteCommand - DELETE <stream>
-func DeleteCommand(c cmds.Context) {
+func DeleteCommand(c *cmds.Context) {
 	if len(c.Args) < 1 {
 		c.WriteError("DELETE command must have at least 1 argument: DEL <stream> [<key2> ...]")
 		return
@@ -42,7 +43,7 @@ func DeleteCommand(c cmds.Context) {
 }
 
 // ExistsCommand - EXISTS <stream>
-func ExistsCommand(c cmds.Context) {
+func ExistsCommand(c *cmds.Context) {
 	if len(c.Args) < 1 {
 		c.WriteError("EXISTS command must have at least 1 argument: EXISTS <stream>")
 		return
@@ -65,7 +66,7 @@ func ExistsCommand(c cmds.Context) {
 }
 
 // ListCommand - SLIST
-func ListCommand(c cmds.Context) {
+func ListCommand(c *cmds.Context) {
 	// TODO: Logic does not hold for all data stores
 	data := make(map[string]int)
 

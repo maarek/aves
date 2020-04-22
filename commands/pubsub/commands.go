@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package pubsub
 
 import (
@@ -27,7 +28,7 @@ import (
 // const defaultPubSubAllTopic = "*"
 
 // PublishCommand - PUBLISH <stream> <version> <event-payload>
-func PublishCommand(c cmds.Context) {
+func PublishCommand(c *cmds.Context) {
 	if len(c.Args) < 3 {
 		c.WriteError("PUBLISH command must have at all required argument: PUBLISH <stream> <version> <event-payload>")
 		return
@@ -59,7 +60,7 @@ func PublishCommand(c cmds.Context) {
 }
 
 // SubscribeCommand - SUBSCRIBE <stream> [<offset>]
-func SubscribeCommand(c cmds.Context) {
+func SubscribeCommand(c *cmds.Context) {
 	if len(c.Args) < 1 {
 		c.WriteError("SUBSCRIBE must has at least 1 argument, SUBSCRIBE <stream> [<offset>]")
 		return
@@ -111,7 +112,7 @@ func SubscribeCommand(c cmds.Context) {
 		d = redcon.AppendBulkString(d, kv.Key.ID.String())
 		d = redcon.AppendBulkString(d, string(kv.Key.Version))
 		d = redcon.AppendBulkString(d, kv.Value)
-		if _, err := conn.NetConn().Write(d); nil != err {
+		if _, err := conn.NetConn().Write(d); err != nil {
 			return
 		}
 	}
@@ -122,7 +123,7 @@ func SubscribeCommand(c cmds.Context) {
 }
 
 // SubscribeAllCommand - SUBSCRIBEALL [<index>]
-func SubscribeAllCommand(c cmds.Context) {
+func SubscribeAllCommand(c *cmds.Context) {
 	var prefix []byte
 	conn := c.Detach()
 
@@ -164,7 +165,7 @@ func SubscribeAllCommand(c cmds.Context) {
 		d = redcon.AppendBulkString(d, kv.Key.ID.String())
 		d = redcon.AppendBulkString(d, string(kv.Key.Version))
 		d = redcon.AppendBulkString(d, kv.Value)
-		if _, err := conn.NetConn().Write(d); nil != err {
+		if _, err := conn.NetConn().Write(d); err != nil {
 			return
 		}
 	}
@@ -174,6 +175,7 @@ func SubscribeAllCommand(c cmds.Context) {
 	go listen(listener, conn)
 }
 
+// KeyValue - key and value
 type KeyValue struct {
 	Key   store.Key
 	Value string
@@ -188,7 +190,7 @@ func listen(r oplog.Receiver, conn redcon.DetachedConn) {
 		d = redcon.AppendBulkString(d, kv.Key.ID.String())
 		d = redcon.AppendBulkString(d, string(kv.Key.Version))
 		d = redcon.AppendBulkString(d, kv.Value)
-		if _, err := conn.NetConn().Write(d); nil != err {
+		if _, err := conn.NetConn().Write(d); err != nil {
 			_ = conn.Close()
 			return
 		}

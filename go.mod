@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	github.com/alash3al/go-color v1.7.0
-	github.com/boltdb/bolt v1.3.1
 	github.com/cockroachdb/pebble v0.0.0-20200311200940-d2ecbc248dec
 	github.com/dgraph-io/badger/v2 v2.0.2
 	github.com/golang/protobuf v1.3.3 // indirect

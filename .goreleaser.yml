@@ -1,0 +1,111 @@
+---
+project_name: aves
+
+release:
+  github:
+    owner: maarek
+    name: aves
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: aves
+    binary: aves
+    goos:
+      - darwin
+      - windows
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - 386
+    goarm:
+      - 6
+      - 7
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/server/
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+  - id: avcli
+    binary: avcli
+    goos:
+      - darwin
+      - windows
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - 386
+    goarm:
+      - 6
+      - 7
+    env:
+      - CGO_ENABLED=0
+    main: ./cmd/cli/
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+
+archives:
+  - format: tar.gz
+    wrap_in_directory: true
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: '{{ .Binary }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    files:
+      - LICENSE
+      - README.md
+
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
+
+checksum:
+  name_template: '{{ .ProjectName }}-{{ .Version }}-checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^dev:'
+      - 'README'
+      - Merge pull request
+      - Merge branch
+
+dockers:
+  - dockerfile: build/Dockerfile.aves
+    binaries:
+      - aves
+    image_templates:
+      - "maarek/aves:latest"
+      - "maarek/aves:{{ .Tag }}"
+      - "maarek/aves:v{{ .Major }}.{{ .Minor }}"
+  - dockerfile: build/Dockerfile.aves.alpine
+    binaries:
+      - aves
+    image_templates:
+      - "maarek/aves:latest-alpine"
+      - "maarek/aves:{{ .Tag }}-alpine"
+      - "maarek/aves:v{{ .Major }}.{{ .Minor }}-alpine"
+  - dockerfile: build/Dockerfile.avcli
+    binaries:
+      - avcli
+    image_templates:
+      - "maarek/avcli:latest"
+      - "maarek/avcli:{{ .Tag }}"
+      - "maarek/avcli:v{{ .Major }}.{{ .Minor }}"
+  - dockerfile: build/Dockerfile.avcli.alpine
+    binaries:
+      - avcli
+    image_templates:
+      - "maarek/avcli:latest-alpine"
+      - "maarek/avcli:{{ .Tag }}-alpine"
+      - "maarek/avcli:v{{ .Major }}.{{ .Minor }}-alpine"
+
+
